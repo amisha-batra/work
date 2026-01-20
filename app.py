@@ -3,6 +3,7 @@ import tempfile
 import json
 import os
 import re
+from tech_spec_parser import extract_technical_specifications
 from dimension_parser import extract_dimensions_from_pdf
 
 
@@ -40,7 +41,7 @@ if uploaded_file:
     st.success("Extraction completed ✅")
 
     # ---------- DISPLAY JSON ----------
-    st.subheader("📦 Extracted JSON Output")
+    st.subheader("Extracted JSON Output")
     st.json(data)
 
     # ---------- BUILD FILENAME ----------
@@ -67,5 +68,31 @@ if uploaded_file:
         "⬇ Download JSON",
         json.dumps(data, indent=2),
         file_name=filename,
+        mime="application/json"
+    )
+
+    # ---------- TECHNICAL SPECIFICATIONS ----------
+    with st.spinner("Extracting technical specifications..."):
+        tech_specs = extract_technical_specifications(pdf_path)
+
+    st.subheader("🧪 Technical Specifications")
+    st.json(tech_specs)
+
+    # ---------- SAVE TECH SPECS JSON ----------
+    tech_output_dir = "output_tech_specifications"
+    os.makedirs(tech_output_dir, exist_ok=True)
+
+    tech_filename = f"{product_family}_{model_part}_tech_specs.json"
+    tech_file_path = os.path.join(tech_output_dir, tech_filename)
+
+    with open(tech_file_path, "w") as f:
+        json.dump(tech_specs, f, indent=2)
+
+    st.success(f"Technical specs saved at:\n`{tech_file_path}`")
+
+    st.download_button(
+        "⬇ Download Technical Specs JSON",
+        json.dumps(tech_specs, indent=2),
+        file_name=tech_filename,
         mime="application/json"
     )
